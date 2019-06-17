@@ -1,0 +1,163 @@
+---
+title: "Estadísticas descriptivas y manipulación de datos (workflow)"
+output: github_document
+
+---
+
+
+A continuación se generarán estadísticas descriptivas rapidamente con `tidyverse`, específicamente con `dplyr`. `dplyr` contiene varias funciones para manipulación de datos y cálculos de estadísticas muy simples. Se trabajará con un conjunto de datos que viene en `dplyr`, por tanto no se importarán los datos. `dplyr` es util cuando la forma de los datos ya viene preparada. Cuando los datos estan desordenados, primero se deberán manipular para que tengan un formato *tidy*, para esto se recomienda usar `tidyr`.  
+Entonces, se usará el paquete `tidyr` para *reshape* o cambiar la forma y limpiar los datos. Se usarán las "verbos" o funciones de `tidyverse`, pero también a modo de comparación, se hará un análisis con las funciones estandar o funciones bases de R.   
+
+## Cargamos los paquetes y datos
+
+Cargamos el conjunto de datos `starwars` que está incluido en el paquete `dplyr`:  
+```{r message=FALSE}
+library(dplyr)
+data(starwars)
+```
+
+Un vistazo rápido al conjunto:  
+
+```{r}
+head(starwars)
+```
+
+Este conjunto de datos contiene información sobre los personajes de Star Wars. Por ejemplo, una pregunta podría ser: la altura promedio de los personajes:
+
+```{r}
+#Calcular la media de altura:
+mean(starwars$height)
+# la salida es NA, obviamente hay NAs en esa columna
+anyNA(starwars$height)
+# Cuantos NA?
+sum(is.na(starwars$height))
+# Cuales?
+print(starwars[is.na(starwars$height),])
+```
+
+**Entonces**, una alternativa para obtener la media de la altura es con con un parámetro de la función `mean()`:  
+
+```{r}
+mean(starwars$height , na.rm = T)
+```
+
+Veamos la desviación estandar de la altura:
+
+```{r}
+sd(starwars$height, na.rm = TRUE)
+```
+
+Sería interesante calcular estas dos estadísticas según especie (`species`). Se puede calcular con `aggregate()`:
+
+```{r}
+aggregate(starwars$height,
+          by = list(Species = starwars$species),
+          mean)
+```
+
+Para utilizar `aggregate()` se necesitan 3 cosas, las variables que se quiere trabajar, una lista de variables agrupadas y la función que se aplicará a cada subset.Por ejemplo con otro subconjutno:  
+
+```{r}
+aggregate(starwars$height,
+          by = list(Species = starwars$species,
+                    Homeworld = starwars$homeworld),
+          mean)
+```
+
+o con otra función: 
+
+```{r}
+aggregate(starwars$height,
+          by = list(Species = starwars$species),
+          sd)
+```
+
+La función `aggregate()` devuelve un objeto `data.frame`:
+
+```{r}
+class(aggregate(starwars$height, by = list(Species = starwars$species), mean))
+```
+
+**Otra alternativa** usando *R base*  es:
+
+```{r}
+tapply(starwars$height, list(starwars$species), mean)
+```
+
+La función `tapply` devuelve un objeto `array`, similar a un vector.
+
+```{r}
+class(tapply(starwars$height, list(starwars$species), mean))
+```
+
+Sin embargo, `tapply()` no funciona si tu quieres el promedio por especies para todas las variables del conjunto:
+
+```{r eval=F}
+tapply(starwars, list(starwars$species), mean)
+# da error!
+```
+
+En ambos casos, se puede especificar una función. Si quieres el promedio y de desviación estantar, debes hacerlo en dos pasos.  
+
+Continuemo calculando el promedio de alturas por especies, pero en hombres:  
+
+```{r}
+#hacemos la división den conjunto con subset()
+starwars_males <- subset(starwars, gender == "male")
+aggregate(starwars_males$height,
+          by = list(Species = starwars_males$species),
+          mean)
+```
+
+`subset()` puede ser usado para seleccionar columnas. Si queremos el promedio de la altura y masa para los hombres, se podría hacer con algo así:
+
+```{r}
+#un subset de altura y masa para hombres
+starwars_males_height_mass <- subset(starwars, gender == "male", select = c(height, mass, species))
+# calculo de los promedios
+aggregate(starwars_males_height_mass,
+          by = list(Species = starwars_males_height_mass$species),
+          mean)
+```
+
+Esto se pone más trabajoso pero es una herramienta poderosa.  
+
+## Modo `tidyverse`
+
+A continuación se empezará a trabajar con el modo de `tidyverse`:
+
+Primero usando la pipa: ** %>% ** 
+El uso de la pipa viene implementado en varios paquetes, uno de ellos es `magrittr`.  
+
+```{r}
+library(magrittr)
+sqrt(16)
+16 %>% sqrt
+```
+
+La forma para calcular la raiz cuadrada en la linea anterior es un poco extraña, pero facil de entender, ese es el objetivo de la pipa. La pipa tomó el `16` y le aplicó la función `sqrt()`. De esta manera se pueden encadenar multiples funciones:  
+
+```{r}
+16 %>% sqrt %>% `+`(18)
+```
+
+Tambiés se puede escribir así: 
+
+```{r}
+16 %>% 
+  sqrt %>% 
+  `+`(18) 
+```
+
+Sin las pipas sería de esta manera:  
+
+```{r}
+sqrt(16) + 18
+```
+
+Hay otras operaciónes que vienen en `magrittr`, como `%T%`, `%<>%` and `%$%`. 
+
+```{r include= F}
+# NOTA! en firefox * continuar manipulacion
+```
+
