@@ -261,8 +261,7 @@ aggregate(starwars$height,
     ## 36 Yoda's species        NA
     ## 37         Zabrak  2.828427
 
-La función `aggregate()` devuelve un objeto
-`data.frame`:
+La función `aggregate()` devuelve un objeto `data.frame`:
 
 ``` r
 class(aggregate(starwars$height, by = list(Species = starwars$species), mean))
@@ -270,8 +269,7 @@ class(aggregate(starwars$height, by = list(Species = starwars$species), mean))
 
     ## [1] "data.frame"
 
-**Otra alternativa** usando *R base*
-    es:
+**Otra alternativa** usando *R base* es:
 
 ``` r
 tapply(starwars$height, list(starwars$species), mean)
@@ -549,3 +547,356 @@ sqrt(16) + 18
 
 Hay otras operaciónes que vienen en `magrittr`, como `%T%`, `%<>%` and
 `%$%`.
+
+# Primeros pasos con `dplyr`
+
+Cargamos el paquete y los datos `starwars`.
+
+``` r
+library(dplyr)
+data(starwars) #carga los datos starwars que incluye el paquete dplyr
+head(starwars)
+```
+
+    ## # A tibble: 6 x 13
+    ##   name  height  mass hair_color skin_color eye_color birth_year gender
+    ##   <chr>  <int> <dbl> <chr>      <chr>      <chr>          <dbl> <chr> 
+    ## 1 Luke~    172    77 blond      fair       blue            19   male  
+    ## 2 C-3PO    167    75 <NA>       gold       yellow         112   <NA>  
+    ## 3 R2-D2     96    32 <NA>       white, bl~ red             33   <NA>  
+    ## 4 Dart~    202   136 none       white      yellow          41.9 male  
+    ## 5 Leia~    150    49 brown      light      brown           19   female
+    ## 6 Owen~    178   120 brown, gr~ light      blue            52   male  
+    ## # ... with 5 more variables: homeworld <chr>, species <chr>, films <list>,
+    ## #   vehicles <list>, starships <list>
+
+R incluye funciones para estadisticas descriptivas, como `mean()`,
+`sd()`, `cov()`, y muchas más. Lo bueno de la libreria `dplyr` es que es
+posible aplicar estas fuciones de R al conjunto de datos facilmente. Por
+ejemplo, imgina que quieres calcular el promedio de la altura para todo
+el conjunto:
+
+  - Con las funciones básicas de R sería:
+
+<!-- end list -->
+
+``` r
+mean(starwars$height)
+```
+
+    ## [1] NA
+
+Ahora, si queremos calcular el promedio por especie, usando `dplyr`:
+
+``` r
+starwars %>% 
+  group_by(species) %>% 
+  summarise(mean(height))
+```
+
+    ## # A tibble: 38 x 2
+    ##    species   `mean(height)`
+    ##    <chr>              <dbl>
+    ##  1 <NA>                  NA
+    ##  2 Aleena                79
+    ##  3 Besalisk             198
+    ##  4 Cerean               198
+    ##  5 Chagrian             196
+    ##  6 Clawdite             168
+    ##  7 Droid                 NA
+    ##  8 Dug                  112
+    ##  9 Ewok                  88
+    ## 10 Geonosian            183
+    ## # ... with 28 more rows
+
+Sin el uso de la pipa `%>%`, el código anterior se escribiría:
+
+``` r
+summarise(group_by(starwars, species), mean(height))
+```
+
+    ## # A tibble: 38 x 2
+    ##    species   `mean(height)`
+    ##    <chr>              <dbl>
+    ##  1 <NA>                  NA
+    ##  2 Aleena                79
+    ##  3 Besalisk             198
+    ##  4 Cerean               198
+    ##  5 Chagrian             196
+    ##  6 Clawdite             168
+    ##  7 Droid                 NA
+    ##  8 Dug                  112
+    ##  9 Ewok                  88
+    ## 10 Geonosian            183
+    ## # ... with 28 more rows
+
+Como se puede ver, es mucho mas dificil de leer la línea anterior.
+Ahora, si queremos la altura promedio por especies, pero solo para
+hombres:
+
+``` r
+starwars %>% 
+  filter(gender == "male") %>% 
+  group_by(species) %>% 
+  summarise( mean(height))
+```
+
+    ## # A tibble: 32 x 2
+    ##    species   `mean(height)`
+    ##    <chr>              <dbl>
+    ##  1 <NA>                183 
+    ##  2 Aleena               79 
+    ##  3 Besalisk            198 
+    ##  4 Cerean              198 
+    ##  5 Chagrian            196 
+    ##  6 Dug                 112 
+    ##  7 Ewok                 88 
+    ##  8 Geonosian           183 
+    ##  9 Gungan              209.
+    ## 10 Human                NA 
+    ## # ... with 22 more rows
+
+De nuevo, la línea anterior sin las pipas se escribiría:
+
+``` r
+summarise(group_by(filter(starwars, gender == "male"), species), mean(height))
+```
+
+    ## # A tibble: 32 x 2
+    ##    species   `mean(height)`
+    ##    <chr>              <dbl>
+    ##  1 <NA>                183 
+    ##  2 Aleena               79 
+    ##  3 Besalisk            198 
+    ##  4 Cerean              198 
+    ##  5 Chagrian            196 
+    ##  6 Dug                 112 
+    ##  7 Ewok                 88 
+    ##  8 Geonosian           183 
+    ##  9 Gungan              209.
+    ## 10 Human                NA 
+    ## # ... with 22 more rows
+
+Es dificil de leer. Una manera de hacerlo más legible podría ser
+guardando los cambios en variables intermedias:
+
+``` r
+starwars_hombres <- filter(starwars, gender == "male")
+
+starwars_agrupado_hombres <- group_by(starwars_hombres, species)
+
+summarise(starwars_agrupado_hombres, mean(height))
+```
+
+    ## # A tibble: 32 x 2
+    ##    species   `mean(height)`
+    ##    <chr>              <dbl>
+    ##  1 <NA>                183 
+    ##  2 Aleena               79 
+    ##  3 Besalisk            198 
+    ##  4 Cerean              198 
+    ##  5 Chagrian            196 
+    ##  6 Dug                 112 
+    ##  7 Ewok                 88 
+    ##  8 Geonosian           183 
+    ##  9 Gungan              209.
+    ## 10 Human                NA 
+    ## # ... with 22 more rows
+
+Pero tambíen es tedioso.
+
+Las funciones `filter()`, `group_by()` y `summarise()` vienen incluidas
+en `dplyr`. `mean()` en *nativa* de R.
+
+El resultado de las operaciones que usa `dplyr` son datasets o
+`tibbles`. Estas se pueden guardar como otras variables para volver a
+usarlas.
+
+``` r
+mean_height <- starwars %>%
+  group_by(species) %>%
+  summarise(mean(height))
+
+class(mean_height)
+```
+
+    ## [1] "tbl_df"     "tbl"        "data.frame"
+
+``` r
+head(mean_height)
+```
+
+    ## # A tibble: 6 x 2
+    ##   species  `mean(height)`
+    ##   <chr>             <dbl>
+    ## 1 <NA>                 NA
+    ## 2 Aleena               79
+    ## 3 Besalisk            198
+    ## 4 Cerean              198
+    ## 5 Chagrian            196
+    ## 6 Clawdite            168
+
+Si necesitas más que solo el promedio de la altura, solo añadir las
+funciones que necesitas:
+
+``` r
+summary_table <- starwars %>% 
+  group_by(species) %>%
+  summarise(ave_height = mean(height), var_height = var(height), n_obs = n(), sd_altura = sd(height))
+
+print(summary_table)
+```
+
+    ## # A tibble: 38 x 5
+    ##    species   ave_height var_height n_obs sd_altura
+    ##    <chr>          <dbl>      <dbl> <int>     <dbl>
+    ##  1 <NA>              NA         NA     5       NaN
+    ##  2 Aleena            79         NA     1       NaN
+    ##  3 Besalisk         198         NA     1       NaN
+    ##  4 Cerean           198         NA     1       NaN
+    ##  5 Chagrian         196         NA     1       NaN
+    ##  6 Clawdite         168         NA     1       NaN
+    ##  7 Droid             NA         NA     5       NaN
+    ##  8 Dug              112         NA     1       NaN
+    ##  9 Ewok              88         NA     1       NaN
+    ## 10 Geonosian        183         NA     1       NaN
+    ## # ... with 28 more rows
+
+Las funciones `var()` y `n()` provienen de `dplyr` y no de R base. Esto
+es muy util, porque se pueden ver varias especies con solo UN individuo.
+Pongamos focos en las especies con más de una observación. Guardando
+todas las operaciones anteriores en una variable:
+
+``` r
+summary_table2 <- summary_table %>%
+  filter(n_obs > 1)
+
+print(summary_table2)
+```
+
+    ## # A tibble: 9 x 5
+    ##   species  ave_height var_height n_obs sd_altura
+    ##   <chr>         <dbl>      <dbl> <int>     <dbl>
+    ## 1 <NA>            NA         NA      5    NaN   
+    ## 2 Droid           NA         NA      5    NaN   
+    ## 3 Gungan         209.       201.     3     14.2 
+    ## 4 Human           NA         NA     35    NaN   
+    ## 5 Kaminoan       221        128      2     11.3 
+    ## 6 Mirialan       168          8      2      2.83
+    ## 7 Twi'lek        179          2      2      1.41
+    ## 8 Wookiee        231         18      2      4.24
+    ## 9 Zabrak         173          8      2      2.83
+
+Hay muchos valores `NA`s, esto es porque si una observación en `NA` las
+funciones `mean()` y `var()` devuelven `NA`. Hay que ver más
+detalladamente el conjunto. Dentro de esas funciones se pueden ignorar:
+
+``` r
+starwars %>%
+  group_by(species) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+    ## # A tibble: 9 x 4
+    ##   species  ave_height var_height n_obs
+    ##   <chr>         <dbl>      <dbl> <int>
+    ## 1 <NA>           160       1826      5
+    ## 2 Droid          140       2705.     5
+    ## 3 Gungan         209.       201.     3
+    ## 4 Human          177.       157.    35
+    ## 5 Kaminoan       221        128      2
+    ## 6 Mirialan       168          8      2
+    ## 7 Twi'lek        179          2      2
+    ## 8 Wookiee        231         18      2
+    ## 9 Zabrak         173          8      2
+
+Aún hay un `NA` en especies.
+
+``` r
+starwars %>%
+  filter(is.na(species))
+```
+
+    ## # A tibble: 5 x 13
+    ##   name  height  mass hair_color skin_color eye_color birth_year gender
+    ##   <chr>  <int> <dbl> <chr>      <chr>      <chr>          <dbl> <chr> 
+    ## 1 Ric ~    183    NA brown      fair       blue              NA male  
+    ## 2 Quar~    183    NA black      dark       brown             62 male  
+    ## 3 R4-P~     96    NA none       silver, r~ red, blue         NA female
+    ## 4 Sly ~    178    48 none       pale       white             NA female
+    ## 5 Capt~     NA    NA unknown    unknown    unknown           NA female
+    ## # ... with 5 more variables: homeworld <chr>, species <chr>, films <list>,
+    ## #   vehicles <list>, starships <list>
+
+La función `is.na()` es de R base. Se puede usar para filtrar los `NA`:
+
+``` r
+starwars %>%
+  filter(!is.na(species))
+```
+
+    ## # A tibble: 82 x 13
+    ##    name  height  mass hair_color skin_color eye_color birth_year gender
+    ##    <chr>  <int> <dbl> <chr>      <chr>      <chr>          <dbl> <chr> 
+    ##  1 Luke~    172    77 blond      fair       blue            19   male  
+    ##  2 C-3PO    167    75 <NA>       gold       yellow         112   <NA>  
+    ##  3 R2-D2     96    32 <NA>       white, bl~ red             33   <NA>  
+    ##  4 Dart~    202   136 none       white      yellow          41.9 male  
+    ##  5 Leia~    150    49 brown      light      brown           19   female
+    ##  6 Owen~    178   120 brown, gr~ light      blue            52   male  
+    ##  7 Beru~    165    75 brown      light      blue            47   female
+    ##  8 R5-D4     97    32 <NA>       white, red red             NA   <NA>  
+    ##  9 Bigg~    183    84 black      light      brown           24   male  
+    ## 10 Obi-~    182    77 auburn, w~ fair       blue-gray       57   male  
+    ## # ... with 72 more rows, and 5 more variables: homeworld <chr>,
+    ## #   species <chr>, films <list>, vehicles <list>, starships <list>
+
+Seleccionando las especies que no tienen `NA` :
+
+``` r
+starwars %>%
+  filter(!is.na(species)) %>%
+  group_by(species) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+    ## # A tibble: 8 x 4
+    ##   species  ave_height var_height n_obs
+    ##   <chr>         <dbl>      <dbl> <int>
+    ## 1 Droid          140       2705.     5
+    ## 2 Gungan         209.       201.     3
+    ## 3 Human          177.       157.    35
+    ## 4 Kaminoan       221        128      2
+    ## 5 Mirialan       168          8      2
+    ## 6 Twi'lek        179          2      2
+    ## 7 Wookiee        231         18      2
+    ## 8 Zabrak         173          8      2
+
+**Y estratificando por genero:**
+
+``` r
+starwars %>%
+  filter(!is.na(species)) %>%
+  group_by(species, gender) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+    ## # A tibble: 8 x 5
+    ## # Groups:   species [6]
+    ##   species  gender ave_height var_height n_obs
+    ##   <chr>    <chr>       <dbl>      <dbl> <int>
+    ## 1 Droid    <NA>         120      1657       3
+    ## 2 Droid    none         200        NA       2
+    ## 3 Gungan   male         209.      201.      3
+    ## 4 Human    female       160.       48.8     9
+    ## 5 Human    male         182.       67.1    26
+    ## 6 Mirialan female       168         8       2
+    ## 7 Wookiee  male         231        18       2
+    ## 8 Zabrak   male         173         8       2
+
+ok… ahora entremos más en detalle a las funciones de `dplyr`.
+
+## Filtrando datasets con `filter()`

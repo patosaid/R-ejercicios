@@ -161,3 +161,145 @@ Hay otras operaciónes que vienen en `magrittr`, como `%T%`, `%<>%` and `%$%`.
 # NOTA! en firefox * continuar manipulacion
 ```
 
+# Primeros pasos con `dplyr`
+
+Cargamos el paquete y los datos `starwars`.  
+```{r}
+library(dplyr)
+data(starwars) #carga los datos starwars que incluye el paquete dplyr
+head(starwars)
+```
+
+R incluye funciones para estadisticas descriptivas, como `mean()`, `sd()`, `cov()`, y muchas más. Lo bueno de la libreria `dplyr` es que es posible aplicar estas fuciones de R al conjunto de datos facilmente. Por ejemplo, imgina que quieres calcular el promedio de la altura para todo el conjunto:
+
+* Con las funciones básicas de R sería:
+
+```{r}
+mean(starwars$height)
+```
+
+Ahora, si queremos calcular el promedio por especie, usando `dplyr`: 
+
+```{r}
+starwars %>% 
+  group_by(species) %>% 
+  summarise(mean(height))
+```
+
+Sin el uso de la pipa ` %>% `, el código anterior se escribiría:
+
+```{r}
+summarise(group_by(starwars, species), mean(height))
+```
+
+Como se puede ver, es mucho mas dificil de leer la línea anterior. Ahora, si queremos la altura promedio por especies, pero solo para hombres:  
+```{r}
+starwars %>% 
+  filter(gender == "male") %>% 
+  group_by(species) %>% 
+  summarise( mean(height))
+```
+
+De nuevo, la línea anterior sin las pipas se escribiría:  
+```{r}
+summarise(group_by(filter(starwars, gender == "male"), species), mean(height))
+```
+
+Es dificil de leer. Una manera de hacerlo más legible podría ser guardando los cambios en variables intermedias:  
+
+```{r}
+starwars_hombres <- filter(starwars, gender == "male")
+
+starwars_agrupado_hombres <- group_by(starwars_hombres, species)
+
+summarise(starwars_agrupado_hombres, mean(height))
+```
+
+Pero tambíen es tedioso. 
+
+Las funciones `filter()`, `group_by()` y `summarise()` vienen incluidas en `dplyr`. `mean()` en *nativa* de R.  
+
+El resultado de las operaciones que usa `dplyr` son datasets o `tibbles`. Estas se pueden guardar como otras variables para volver a usarlas.
+
+```{r}
+mean_height <- starwars %>%
+  group_by(species) %>%
+  summarise(mean(height))
+
+class(mean_height)
+```
+
+```{r}
+head(mean_height)
+```
+
+Si necesitas más que solo el promedio de la altura, solo añadir las funciones que necesitas:
+
+```{r}
+summary_table <- starwars %>% 
+  group_by(species) %>%
+  summarise(ave_height = mean(height), var_height = var(height), n_obs = n(), sd_altura = sd(height))
+
+print(summary_table)
+```
+
+Las funciones `var()` y `n()` provienen de `dplyr` y no de R base. Esto es muy util, porque se pueden ver varias especies con solo UN individuo. Pongamos focos en las especies con más de una observación. Guardando todas las operaciones anteriores en una variable:
+
+```{r}
+summary_table2 <- summary_table %>%
+  filter(n_obs > 1)
+
+print(summary_table2)
+```
+
+Hay muchos valores `NA`s, esto es porque si una observación en `NA` las funciones `mean()` y `var()` devuelven `NA`. Hay que ver más detalladamente el conjunto.  Dentro de esas funciones se pueden ignorar:
+
+```{r}
+starwars %>%
+  group_by(species) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+Aún hay un `NA` en especies. 
+
+```{r}
+starwars %>%
+  filter(is.na(species))
+```
+
+La función `is.na()` es de R base. Se puede usar para filtrar los `NA`:  
+
+```{r}
+starwars %>%
+  filter(!is.na(species))
+```
+
+Seleccionando las especies que no tienen `NA` :
+
+```{r}
+starwars %>%
+  filter(!is.na(species)) %>%
+  group_by(species) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+**Y estratificando por genero:**
+
+```{r}
+starwars %>%
+  filter(!is.na(species)) %>%
+  group_by(species, gender) %>%
+  summarise(ave_height = mean(height, na.rm = TRUE), var_height = var(height, na.rm = TRUE), n_obs = n()) %>%
+  filter(n_obs > 1)
+```
+
+ok... ahora entremos más en detalle a las funciones de `dplyr`.
+
+## Filtrando datasets con `filter()`
+
+```{r include= F, eval = F}
+en el browser: * continuar manipulacion
+```
+
