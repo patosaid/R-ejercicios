@@ -299,7 +299,60 @@ ok... ahora entremos más en detalle a las funciones de `dplyr`.
 
 ## Filtrando datasets con `filter()`
 
+Ahora, usaremos el conjunto `Gasoline` del paquete `plm`.
+
+```{r eval=F}
+install.packages("plm")
+```
+
+Y cargamos el dataset y `dplyr`:  
+```{r message= F}
+data(Gasoline, package = "plm")  
+library(dplyr)
+```
+
+Este dataser contiene el consumo de gasolina de 18 paises desde 1960 a 1978. Cuando cargas el data de esta manera, es un `data.frame` estandar. Las funciones de `dplyr` pueden ser usadas sobre objetos `data.frame`, pero también en `tibble`'s. Las `tibbles`'s son como los `data.frame` pero con un método de `print` mejor ( y otras mejoras sutiles ). Discutiremos el paquete `tibble` después. Por ahora, convirtamos los datos a `tibble` y cambiemos su nombre:  
+
+```{r}
+gasoline <- as_tibble(Gasoline) 
+```
+
+La función `filter()` es sencilla. Por ejemplo, si quieres un subconjunto de datos enfocados en el año 1969, simple:
+
+```{r}
+filter(gasoline , year== 1969)
+```
+
+Usemos el operador pipa:  
+
+```{r}
+gasoline %>%  filter(year==1969)
+```
+
+
+Incluso se puede filtrar más de un solo año, usando el operador `%in%`:
+
+```{r}
+gasoline %>% filter(year %in% seq(1969, 1973 ,by = 2))
+gasoline %>% filter(year %in% 1969:1973)
+```
+
+También se puede usar `between()`:
+
+```{r}
+gasoline %>% filter(between(year, 1969, 1973))
+```
+
+Seleccionar algunas específicas:  
+
+```{r}
+gasoline %>% filter(year %in% c(1969, 1973, 1977))
+```
+
+
+## Seleccionando columnas con `select()`
+
 ```{r include= F, eval = F}
-en el browser: * continuar manipulacion
+en el browser: * continuar manipulacion sección 4.3.3
 ```
 

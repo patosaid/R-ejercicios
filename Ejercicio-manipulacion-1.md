@@ -900,3 +900,169 @@ starwars %>%
 ok… ahora entremos más en detalle a las funciones de `dplyr`.
 
 ## Filtrando datasets con `filter()`
+
+Ahora, usaremos el conjunto `Gasoline` del paquete `plm`.
+
+``` r
+install.packages("plm")
+```
+
+Y cargamos el dataset y `dplyr`:
+
+``` r
+data(Gasoline, package = "plm")  
+library(dplyr)
+```
+
+Este dataser contiene el consumo de gasolina de 18 paises desde 1960 a
+1978. Cuando cargas el data de esta manera, es un `data.frame` estandar.
+Las funciones de `dplyr` pueden ser usadas sobre objetos `data.frame`,
+pero también en `tibble`’s. Las `tibbles`’s son como los `data.frame`
+pero con un método de `print` mejor ( y otras mejoras sutiles ).
+Discutiremos el paquete `tibble` después. Por ahora, convirtamos los
+datos a `tibble` y cambiemos su nombre:
+
+``` r
+gasoline <- as_tibble(Gasoline) 
+```
+
+La función `filter()` es sencilla. Por ejemplo, si quieres un
+subconjunto de datos enfocados en el año 1969, simple:
+
+``` r
+filter(gasoline , year== 1969)
+```
+
+    ## # A tibble: 18 x 6
+    ##    country   year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>    <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA   1969     4.05    -6.15 -0.559    -8.79
+    ##  2 BELGIUM   1969     3.85    -5.86 -0.355    -8.52
+    ##  3 CANADA    1969     4.86    -5.56 -1.04     -8.10
+    ##  4 DENMARK   1969     4.17    -5.72 -0.407    -8.47
+    ##  5 FRANCE    1969     3.77    -5.84 -0.315    -8.37
+    ##  6 GERMANY   1969     3.90    -5.83 -0.589    -8.44
+    ##  7 GREECE    1969     4.89    -6.59 -0.180   -10.7 
+    ##  8 IRELAND   1969     4.21    -6.38 -0.272    -8.95
+    ##  9 ITALY     1969     3.74    -6.28 -0.248    -8.67
+    ## 10 JAPAN     1969     4.52    -6.16 -0.417    -9.61
+    ## 11 NETHERLA  1969     3.99    -5.88 -0.417    -8.63
+    ## 12 NORWAY    1969     4.09    -5.74 -0.338    -8.69
+    ## 13 SPAIN     1969     3.99    -5.60  0.669    -9.72
+    ## 14 SWEDEN    1969     3.99    -7.77 -2.73     -8.20
+    ## 15 SWITZERL  1969     4.21    -5.91 -0.918    -8.47
+    ## 16 TURKEY    1969     5.72    -7.39 -0.298   -12.5 
+    ## 17 U.K.      1969     3.95    -6.03 -0.383    -8.47
+    ## 18 U.S.A.    1969     4.84    -5.41 -1.22     -7.79
+
+Usemos el operador pipa:
+
+``` r
+gasoline %>%  filter(year==1969)
+```
+
+    ## # A tibble: 18 x 6
+    ##    country   year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>    <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA   1969     4.05    -6.15 -0.559    -8.79
+    ##  2 BELGIUM   1969     3.85    -5.86 -0.355    -8.52
+    ##  3 CANADA    1969     4.86    -5.56 -1.04     -8.10
+    ##  4 DENMARK   1969     4.17    -5.72 -0.407    -8.47
+    ##  5 FRANCE    1969     3.77    -5.84 -0.315    -8.37
+    ##  6 GERMANY   1969     3.90    -5.83 -0.589    -8.44
+    ##  7 GREECE    1969     4.89    -6.59 -0.180   -10.7 
+    ##  8 IRELAND   1969     4.21    -6.38 -0.272    -8.95
+    ##  9 ITALY     1969     3.74    -6.28 -0.248    -8.67
+    ## 10 JAPAN     1969     4.52    -6.16 -0.417    -9.61
+    ## 11 NETHERLA  1969     3.99    -5.88 -0.417    -8.63
+    ## 12 NORWAY    1969     4.09    -5.74 -0.338    -8.69
+    ## 13 SPAIN     1969     3.99    -5.60  0.669    -9.72
+    ## 14 SWEDEN    1969     3.99    -7.77 -2.73     -8.20
+    ## 15 SWITZERL  1969     4.21    -5.91 -0.918    -8.47
+    ## 16 TURKEY    1969     5.72    -7.39 -0.298   -12.5 
+    ## 17 U.K.      1969     3.95    -6.03 -0.383    -8.47
+    ## 18 U.S.A.    1969     4.84    -5.41 -1.22     -7.79
+
+Incluso se puede filtrar más de un solo año, usando el operador `%in%`:
+
+``` r
+gasoline %>% filter(year %in% seq(1969, 1973 ,by = 2))
+```
+
+    ## # A tibble: 54 x 6
+    ##    country  year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>   <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA  1969     4.05    -6.15 -0.559    -8.79
+    ##  2 AUSTRIA  1971     4.11    -6.04 -0.654    -8.64
+    ##  3 AUSTRIA  1973     4.20    -5.90 -0.594    -8.49
+    ##  4 BELGIUM  1969     3.85    -5.86 -0.355    -8.52
+    ##  5 BELGIUM  1971     3.87    -5.76 -0.399    -8.41
+    ##  6 BELGIUM  1973     3.90    -5.64 -0.373    -8.31
+    ##  7 CANADA   1969     4.86    -5.56 -1.04     -8.10
+    ##  8 CANADA   1971     4.90    -5.48 -1.06     -8.04
+    ##  9 CANADA   1973     4.90    -5.41 -1.13     -7.94
+    ## 10 DENMARK  1969     4.17    -5.72 -0.407    -8.47
+    ## # ... with 44 more rows
+
+``` r
+gasoline %>% filter(year %in% 1969:1973)
+```
+
+    ## # A tibble: 90 x 6
+    ##    country  year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>   <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA  1969     4.05    -6.15 -0.559    -8.79
+    ##  2 AUSTRIA  1970     4.08    -6.08 -0.597    -8.73
+    ##  3 AUSTRIA  1971     4.11    -6.04 -0.654    -8.64
+    ##  4 AUSTRIA  1972     4.13    -5.98 -0.596    -8.54
+    ##  5 AUSTRIA  1973     4.20    -5.90 -0.594    -8.49
+    ##  6 BELGIUM  1969     3.85    -5.86 -0.355    -8.52
+    ##  7 BELGIUM  1970     3.87    -5.80 -0.378    -8.45
+    ##  8 BELGIUM  1971     3.87    -5.76 -0.399    -8.41
+    ##  9 BELGIUM  1972     3.91    -5.71 -0.311    -8.36
+    ## 10 BELGIUM  1973     3.90    -5.64 -0.373    -8.31
+    ## # ... with 80 more rows
+
+También se puede usar `between()`:
+
+``` r
+gasoline %>% filter(between(year, 1969, 1973))
+```
+
+    ## # A tibble: 90 x 6
+    ##    country  year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>   <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA  1969     4.05    -6.15 -0.559    -8.79
+    ##  2 AUSTRIA  1970     4.08    -6.08 -0.597    -8.73
+    ##  3 AUSTRIA  1971     4.11    -6.04 -0.654    -8.64
+    ##  4 AUSTRIA  1972     4.13    -5.98 -0.596    -8.54
+    ##  5 AUSTRIA  1973     4.20    -5.90 -0.594    -8.49
+    ##  6 BELGIUM  1969     3.85    -5.86 -0.355    -8.52
+    ##  7 BELGIUM  1970     3.87    -5.80 -0.378    -8.45
+    ##  8 BELGIUM  1971     3.87    -5.76 -0.399    -8.41
+    ##  9 BELGIUM  1972     3.91    -5.71 -0.311    -8.36
+    ## 10 BELGIUM  1973     3.90    -5.64 -0.373    -8.31
+    ## # ... with 80 more rows
+
+Seleccionar algunas específicas:
+
+``` r
+gasoline %>% filter(year %in% c(1969, 1973, 1977))
+```
+
+    ## # A tibble: 54 x 6
+    ##    country  year lgaspcar lincomep  lrpmg lcarpcap
+    ##    <fct>   <int>    <dbl>    <dbl>  <dbl>    <dbl>
+    ##  1 AUSTRIA  1969     4.05    -6.15 -0.559    -8.79
+    ##  2 AUSTRIA  1973     4.20    -5.90 -0.594    -8.49
+    ##  3 AUSTRIA  1977     3.93    -5.83 -0.422    -8.25
+    ##  4 BELGIUM  1969     3.85    -5.86 -0.355    -8.52
+    ##  5 BELGIUM  1973     3.90    -5.64 -0.373    -8.31
+    ##  6 BELGIUM  1977     3.85    -5.56 -0.432    -8.14
+    ##  7 CANADA   1969     4.86    -5.56 -1.04     -8.10
+    ##  8 CANADA   1973     4.90    -5.41 -1.13     -7.94
+    ##  9 CANADA   1977     4.81    -5.34 -1.07     -7.77
+    ## 10 DENMARK  1969     4.17    -5.72 -0.407    -8.47
+    ## # ... with 44 more rows
+
+## Seleccionando columnas con `select()`
